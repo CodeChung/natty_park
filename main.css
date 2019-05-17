@@ -1,3 +1,19 @@
 input {
     display: block;
 }
+
+.park-set {
+    display: flex;
+}
+
+.end-form {
+    display: flex;
+}
+
+input[type=text]:valid {
+    color: blue;
+}
+
+input[type=text]:invalid {
+    color: red;
+}

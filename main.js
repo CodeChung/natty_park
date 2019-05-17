@@ -1,5 +1,5 @@
 const originalForm = $('#park-form').clone();
-const states = {
+const statesObject = {
     "AL": "Alabama",
     "AK": "Alaska",
     "AS": "American Samoa",
@@ -60,12 +60,42 @@ const states = {
     "WI": "Wisconsin",
     "WY": "Wyoming"
 }
+const apiKey = "LVhUsRzGAOtjaNdnxB45HihVrJKZiarLYyjeCPzv"
 
 function addPark() {
-    $('.park-set').on('click', '.add-park', function(event) {
+    $('form').on('click', '.add-state', function(event) {
         console.log("clisk");
-        $(event).after("<h2>dsjfklj</h2>")
+        $(this).parent().after(`
+        <div class="park-set secondary">
+            <input type="text" name="state" pattern="[A-Za-z]{2}" title="2 character state code">
+            <button type="button" class="add-state" id="">Add State</button>
+            <button type="button" class="delete-state" id="">Delete State</button>
+        </div>
+        `)
+    })
+}
+
+function deletePark() {
+    $('form').on('click', '.delete-state', function(event) {
+        $(this).parent().remove();
+    })
+}
+
+function clearParks() {
+    $('.clear-states').click(event => {
+        $('form').replaceWith(originalForm);
+    })
+}
+
+function watchForm() {
+    $('form').submit(event => {
+        event.preventDefault();
+        const states = $('input[type=text]').toArray();
+        const stateList = states.map(state => $(state).val()).join(",");
     })
 }
 
 $(addPark);
+$(deletePark);
+$(clearParks);
+$(watchForm);

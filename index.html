@@ -18,10 +18,13 @@
             <input type="number" min="0" value="10" required>
             <label for="state">Where Are Your Parks Located?</label>
             <div class="park-set">
-                <input type="text" name="state" required>
-                <button type="button" class="add-park" id="">Add Park</button>
+                <input type="text" name="state" pattern="[A-Za-z]{2}" title="2 character state code" required>
+                <button type="button" class="add-state">Add State</button>
             </div>
-            <input type="submit" value="Let's go">
+            <div class="end-form">
+                <input type="submit" value="Let's go">
+                <button type="button" class="clear-states">Clear States</button>
+            </div>
         </form>
     </main>
     <script src="main.js"></script>
