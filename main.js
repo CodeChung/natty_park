@@ -1,5 +1,18 @@
 "use strict";
-const originalForm = $('form').clone();
+const originalForm = `<form id="park-form" autocomplete="off">
+                        <label for="park-number">How Many Parks Are You Looking For?</label>
+                        <input type="number" min="0" value="10" id="park-number" required>
+                        <label>Where Are Your Parks Located?
+                            <div class="park-set">
+                                <input type="text" name="state" pattern="[A-Za-z]{2}" title="2 character state code" id="state" required>
+                                <button type="button" class="add-state">Add State</button>
+                            </div>
+                        </label>
+                        <div class="end-form">
+                            <input type="submit" value="Let's go">
+                            <button type="button" class="clear-states">Clear States</button>
+                        </div>
+                    </form>`;
 const statesObject = {
     "AL": "Alabama",
     "AK": "Alaska",
@@ -63,6 +76,8 @@ const statesObject = {
 }
 const myKey = "LVhUsRzGAOtjaNdnxB45HihVrJKZiarLYyjeCPzv";
 const searchURL = "https://developer.nps.gov/api/v1/parks?";
+const geoKey = "9975432294b04ba49f9f001f06eaf22d";
+const geoURL = "https://api.opencagedata.com/geocode/v1/json?";
 
 function addParkInput() {
     $('main').on('click', '.add-state', function(event) {
@@ -93,8 +108,39 @@ function formatQueryParams(params) {
     return queryItems;
 }
 
+function getCoords(coords) {
+    const coordList = coords.split(", ");
+    const lat = coordList[0].substring(4, );
+    const long = coordList[1].substring(5, );
+    return [lat, long];
+}
+
+function getAddress(lat, long) {
+    const params = {
+        q: `${lat}%2C${long}`,
+        key: geoKey,
+        pretty: 1
+    }
+    const locationQuery = formatQueryParams(params);
+    const locationUrl = geoURL + locationQuery;
+    fetch(locationUrl)
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error(response.statusText)
+        })
+        .then(responseJson => {
+            const address = responseJson.results[0].formatted;
+            console.log(address);
+            return address;
+        })
+        .catch(error => alert("error"));
+}
+
 function displayResults(responseJson) {
     $('section.error').empty();
+    $('.results h2').empty();
     $('.results-list').empty();
     if (responseJson.total === "0") {
         $('section.error').text("no parks found");
@@ -103,10 +149,15 @@ function displayResults(responseJson) {
         const parks = responseJson.data;
         $('.results h2').text(`Your parks located in: ${stateNames}`);
         parks.forEach(park => {
+            const lat = getCoords(park.latLong)[0];
+            const long = getCoords(park.latLong)[1];
+            debugger;
+            const address = getAddress(lat, long);
             $('.results-list').append(`
             <li>
                 <h3>${park.fullName}</h3>
                 <p>${park.description}</p>
+                <p>address: <a href="https://maps.google.com/?ll=${lat},${long}" target="_blank">${address}</a></p>
                 <a href="${park.url}" target="_blank">Link</a>
             </li>
             `)
