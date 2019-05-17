@@ -1,4 +1,5 @@
-const originalForm = $('#park-form').clone();
+"use strict";
+const originalForm = $('form').clone();
 const statesObject = {
     "AL": "Alabama",
     "AK": "Alaska",
@@ -60,11 +61,11 @@ const statesObject = {
     "WI": "Wisconsin",
     "WY": "Wyoming"
 }
-const apiKey = "LVhUsRzGAOtjaNdnxB45HihVrJKZiarLYyjeCPzv"
+const myKey = "LVhUsRzGAOtjaNdnxB45HihVrJKZiarLYyjeCPzv";
+const searchURL = "https://developer.nps.gov/api/v1/parks?";
 
-function addPark() {
-    $('form').on('click', '.add-state', function(event) {
-        console.log("clisk");
+function addParkInput() {
+    $('main').on('click', '.add-state', function(event) {
         $(this).parent().after(`
         <div class="park-set secondary">
             <input type="text" name="state" pattern="[A-Za-z]{2}" title="2 character state code">
@@ -75,27 +76,74 @@ function addPark() {
     })
 }
 
-function deletePark() {
-    $('form').on('click', '.delete-state', function(event) {
+function deleteParkInput() {
+    $('main').on('click', '.delete-state', function(event) {
         $(this).parent().remove();
     })
 }
 
-function clearParks() {
-    $('.clear-states').click(event => {
+function clearParkInputs() {
+    $('main').on('click', '.clear-states', event => {
         $('form').replaceWith(originalForm);
     })
 }
 
+function formatQueryParams(params) {
+    const queryItems = Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
+    return queryItems;
+}
+
+function displayResults(responseJson) {
+    $('section.error').empty();
+    $('.results-list').empty();
+    if (responseJson.total === "0") {
+        $('section.error').text("no parks found");
+    } else {
+        const stateNames = $('input[type=text]').toArray().map(code => statesObject[$(code).val().toUpperCase()]).filter(ele => ele).join(", ");
+        const parks = responseJson.data;
+        $('.results h2').text(`Your parks located in: ${stateNames}`);
+        parks.forEach(park => {
+            $('.results-list').append(`
+            <li>
+                <h3>${park.fullName}</h3>
+                <p>${park.description}</p>
+                <a href="${park.url}" target="_blank">Link</a>
+            </li>
+            `)
+        })
+    }
+}
+
+function callAPI(stateList, maxResults=10) {
+    const params = {
+        stateCode: stateList,
+        api_key: myKey,
+        limit: maxResults
+    }
+    const urlQuery = formatQueryParams(params)
+    const url = searchURL + urlQuery;
+    fetch(url)
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error(response.statusText);
+        })
+        .then(responseJson => displayResults(responseJson))
+        .catch(error => $("section.error").text(`Oopsies, try again something done went wrong: ${error.message}`))
+}
+
 function watchForm() {
-    $('form').submit(event => {
+    $('main').on('submit', 'form', event => {
         event.preventDefault();
         const states = $('input[type=text]').toArray();
         const stateList = states.map(state => $(state).val()).join(",");
+        const numOfResults = $('#park-number').val() - 1;
+        callAPI(stateList, numOfResults);
     })
 }
 
-$(addPark);
-$(deletePark);
-$(clearParks);
+$(addParkInput);
+$(deleteParkInput);
+$(clearParkInputs);
 $(watchForm);

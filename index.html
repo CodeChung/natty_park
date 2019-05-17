@@ -13,19 +13,26 @@
         <h1>Search for a park</h1>
     </header>
     <main>
-        <form id="park-form">
+        <form id="park-form" autocomplete="off">
             <label for="park-number">How Many Parks Are You Looking For?</label>
-            <input type="number" min="0" value="10" required>
-            <label for="state">Where Are Your Parks Located?</label>
-            <div class="park-set">
-                <input type="text" name="state" pattern="[A-Za-z]{2}" title="2 character state code" required>
-                <button type="button" class="add-state">Add State</button>
-            </div>
+            <input type="number" min="0" value="10" id="park-number" required>
+            <label>Where Are Your Parks Located?
+                <div class="park-set">
+                    <input type="text" name="state" pattern="[A-Za-z]{2}" title="2 character state code" id="state" required>
+                    <button type="button" class="add-state">Add State</button>
+                </div>
+            </label>
             <div class="end-form">
                 <input type="submit" value="Let's go">
                 <button type="button" class="clear-states">Clear States</button>
             </div>
         </form>
+        <section class="error"></section>
+        <section class="results">
+            <h2></h2>
+            <ol class="results-list">
+            </ol>
+        </section>
     </main>
     <script src="main.js"></script>
 </body>
