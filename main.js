@@ -109,29 +109,47 @@ function formatQueryParams(params) {
 }
 
 function getCoords(coords) {
+    let lat, long;
     const coordList = coords.split(", ");
-    const lat = coordList[0].substring(4, );
-    const long = coordList[1].substring(5, );
+    if (coordList.length < 2) {
+        lat = "none";
+        long = "none";
+    } else {
+        lat = coordList[0].substring(4, );
+        long = coordList[1].substring(5, );
+    }
     return [lat, long];
 }
 
 function getAddress(lat, long) {
-    const params = {
-        q: `${lat}%2C${long}`,
-        key: geoKey,
-        pretty: 1
+    console.log("latitude is " + lat + "long is " + long)
+    if (lat === "none" || long === "none") {
+        console.log('we have no coords; if condition reached')
+        let promise = new Promise(function(resolve, reject) {
+            resolve("This park is too big for one address. Sorry bud");
+        });
+        return promise;
+    } else {
+        const params = {
+            q: `${lat}%2C${long}`,
+            key: geoKey,
+            pretty: 1
+        }
+        const locationQuery = formatQueryParams(params);
+        const locationUrl = geoURL + locationQuery;
+        return fetch(locationUrl)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error(response.statusText)
+            })
+            .then(responseJson => {
+                console.log("address is: " + responseJson.results[0].formatted)
+                return responseJson.results[0].formatted
+            })
+            .catch(error => alert(error));
     }
-    const locationQuery = formatQueryParams(params);
-    const locationUrl = geoURL + locationQuery;
-    return fetch(locationUrl)
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            }
-            throw new Error(response.statusText)
-        })
-        .then(responseJson => responseJson.results[0].formatted)
-        .catch(error => alert("error"));
 }
 
 function displayResults(responseJson) {
@@ -145,9 +163,14 @@ function displayResults(responseJson) {
         const parks = responseJson.data;
         $('.results h2').text(`Your parks located in: ${stateNames}`);
         parks.forEach(park => {
-            const lat = getCoords(park.latLong)[0];
-            const long = getCoords(park.latLong)[1];
+            console.log("park data is:");
+            console.log(park)
+            const coords = getCoords(park.latLong)
+            console.log(coords);
+            const lat = coords[0];
+            const long = coords[1];
             getAddress(lat, long).then(address => {
+                console.log("address received " + address);
                 $('.results-list').append(`
                 <li>
                     <h3>${park.fullName}</h3>
@@ -169,6 +192,7 @@ function callAPI(stateList, maxResults=10) {
     }
     const urlQuery = formatQueryParams(params)
     const url = searchURL + urlQuery;
+    console.log("url is " + url);
     fetch(url)
         .then(response => {
             if (response.ok) {
