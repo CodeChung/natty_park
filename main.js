@@ -123,18 +123,14 @@ function getAddress(lat, long) {
     }
     const locationQuery = formatQueryParams(params);
     const locationUrl = geoURL + locationQuery;
-    fetch(locationUrl)
+    return fetch(locationUrl)
         .then(response => {
             if (response.ok) {
                 return response.json();
             }
             throw new Error(response.statusText)
         })
-        .then(responseJson => {
-            const address = responseJson.results[0].formatted;
-            console.log(address);
-            return address;
-        })
+        .then(responseJson => responseJson.results[0].formatted)
         .catch(error => alert("error"));
 }
 
@@ -151,16 +147,16 @@ function displayResults(responseJson) {
         parks.forEach(park => {
             const lat = getCoords(park.latLong)[0];
             const long = getCoords(park.latLong)[1];
-            debugger;
-            const address = getAddress(lat, long);
-            $('.results-list').append(`
-            <li>
-                <h3>${park.fullName}</h3>
-                <p>${park.description}</p>
-                <p>address: <a href="https://maps.google.com/?ll=${lat},${long}" target="_blank">${address}</a></p>
-                <a href="${park.url}" target="_blank">Link</a>
-            </li>
-            `)
+            getAddress(lat, long).then(address => {
+                $('.results-list').append(`
+                <li>
+                    <h3>${park.fullName}</h3>
+                    <p>${park.description}</p>
+                    <p>address: <a href="https://maps.google.com/?ll=${lat},${long}" target="_blank">${address}</a></p>
+                    <a href="${park.url}" target="_blank">Link</a>
+                </li>
+                `)
+            });
         })
     }
 }
